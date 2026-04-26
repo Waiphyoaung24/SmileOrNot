@@ -34,3 +34,12 @@ def test_predict_rejects_non_image(client: TestClient) -> None:
         files={"file": ("foo.txt", b"hello world", "text/plain")},
     )
     assert r.status_code == 415
+
+
+def test_predict_rejects_oversized(client: TestClient) -> None:
+    big = b"\xff\xd8\xff" + b"\x00" * 2_500_000   # > 2 MB ceiling
+    r = client.post(
+        "/predict",
+        files={"file": ("big.jpg", big, "image/jpeg")},
+    )
+    assert r.status_code == 413
