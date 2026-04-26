@@ -26,3 +26,11 @@ def test_predict_returns_boxes(client: TestClient) -> None:
     assert "boxes" in body and "inference_ms" in body
     assert isinstance(body["boxes"], list)
     assert body["inference_ms"] > 0
+
+
+def test_predict_rejects_non_image(client: TestClient) -> None:
+    r = client.post(
+        "/predict",
+        files={"file": ("foo.txt", b"hello world", "text/plain")},
+    )
+    assert r.status_code == 415
