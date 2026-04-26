@@ -1,0 +1,10 @@
+# YOLO data config consumed by Ultralytics Platform / `yolo train data=...`.
+
+path: ./data/yolo
+train: images/train
+val:   images/val
+test:  images/test
+
+names:
+  0: smiling
+  1: neutral
