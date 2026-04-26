@@ -1,0 +1,28 @@
+"""Tests for the FastAPI app — endpoint surface, status codes, schema."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+import pytest
+from fastapi.testclient import TestClient
+
+from smileornot.app import app
+
+FIXTURES = Path(__file__).parent / "fixtures"
+
+
+@pytest.fixture(scope="session")
+def client() -> TestClient:
+    with TestClient(app) as c:
+        yield c
+
+
+def test_predict_returns_boxes(client: TestClient) -> None:
+    raw = (FIXTURES / "smile.jpg").read_bytes()
+    r = client.post("/predict", files={"file": ("frame.jpg", raw, "image/jpeg")})
+    assert r.status_code == 200
+    body = r.json()
+    assert "boxes" in body and "inference_ms" in body
+    assert isinstance(body["boxes"], list)
+    assert body["inference_ms"] > 0
