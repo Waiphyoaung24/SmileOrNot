@@ -32,3 +32,8 @@ def test_predict_no_face(detector: SmileDetector) -> None:
     raw = (FIXTURES / "no_face.jpg").read_bytes()
     boxes, _ = detector.predict_bytes(raw, conf=0.5)
     assert boxes == []
+
+
+def test_predict_invalid_bytes(detector: SmileDetector) -> None:
+    with pytest.raises(Exception):  # PIL raises UnidentifiedImageError
+        detector.predict_bytes(b"not a jpeg")
