@@ -1,0 +1,30 @@
+---
+// No frontmatter logic — Astro builds this to plain HTML.
+---
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>SmileOrNot</title>
+  </head>
+  <body>
+    <main>
+      <h1>SmileOrNot</h1>
+      <p id="status">Click to start.</p>
+      <div class="stage">
+        <video id="video" playsinline autoplay muted></video>
+        <canvas id="overlay"></canvas>
+      </div>
+      <button id="toggle">Start Camera</button>
+    </main>
+
+    <script>
+      import '../scripts/app.js';
+    </script>
+
+    <style is:global>
+      @import '../styles/styles.css';
+    </style>
+  </body>
+</html>
