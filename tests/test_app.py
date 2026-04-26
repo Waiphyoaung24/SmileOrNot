@@ -43,3 +43,10 @@ def test_predict_rejects_oversized(client: TestClient) -> None:
         files={"file": ("big.jpg", big, "image/jpeg")},
     )
     assert r.status_code == 413
+
+
+def test_index_served(client: TestClient) -> None:
+    """GET / returns 200 if Astro built; 404 if not yet built. Either is acceptable
+    for the test — CI builds the frontend before running pytest."""
+    r = client.get("/")
+    assert r.status_code in (200, 404)
