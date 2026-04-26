@@ -1,67 +1,50 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-# Continuous Integration (CI) GitHub Actions tests
-
 name: CI
-
-permissions:
-  contents: read # Read code in PRs
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-  schedule:
-    - cron: "0 0 * * *" # Runs at 00:00 UTC every day
+  workflow_dispatch:
 
 jobs:
-  Test:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.9", "3.13"]
-
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
+        with:
+          lfs: true   # in case best.pt ever moves to LFS
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install frontend deps + build static
+        run: |
+          cd frontend
+          npm ci
+          npm run build
 
       - uses: actions/setup-python@v6
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: '3.11'
 
-      - uses: astral-sh/setup-uv@v7
+      - name: Install CPU torch
+        run: |
+          pip install --upgrade pip
+          pip install torch torchvision \
+            --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Install package + dev extras
+        run: pip install -e ".[dev]"
+
+      - name: Run tests
+        run: pytest --cov=smileornot --cov-report=xml -v
+
+      - uses: codecov/codecov-action@v6
         with:
-          enable-cache: false
-
-      - name: Install dependencies
-        run: |
-          uv pip install --system -e ".[dev]"
-
-      - name: Option 1 - Python tests with pytest
-        run: |
-          python -m pytest tests -v
-
-      - name: Option 2 - Python tests with unittest
-        run: |
-          python -m unittest discover tests -v
-
-      - name: Option 3 - Python tests with pytest coverage
-        run: |
-          python -m pytest tests -v --cov=./ --cov-report=xml:pytest-coverage.xml
-
-      - name: Option 4 - Python tests with unittest coverage
-        run: |
-          python -m coverage run --source=./ -m unittest discover tests -v && python -m coverage xml -o unittest-coverage.xml
-
-      - name: Run CLI tests
-        run: |
-          example-cli-command
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v6
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./pytest-coverage.xml,./unittest-coverage.xml # optional (default = coverage.xml)
-          flags: template_coverage # optional
+          files: coverage.xml
+        if: always()
