@@ -26,3 +26,9 @@ def test_predict_smile_face(detector: SmileDetector) -> None:
     assert 0.0 <= boxes[0]["x1"] < boxes[0]["x2"] <= 1.0
     assert 0.0 <= boxes[0]["y1"] < boxes[0]["y2"] <= 1.0
     assert ms > 0
+
+
+def test_predict_no_face(detector: SmileDetector) -> None:
+    raw = (FIXTURES / "no_face.jpg").read_bytes()
+    boxes, _ = detector.predict_bytes(raw, conf=0.5)
+    assert boxes == []
