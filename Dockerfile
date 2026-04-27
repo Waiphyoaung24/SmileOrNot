@@ -33,4 +33,8 @@ ENV HOME=/home/user \
     PATH=/home/user/.local/bin:$PATH
 
 EXPOSE 7860
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
+    CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:7860/').status==200 else 1)" || exit 1
+
 CMD ["uvicorn", "smileornot.app:app", "--host", "0.0.0.0", "--port", "7860"]
