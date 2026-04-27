@@ -173,6 +173,8 @@ runs/
 weights/
 *.weights
 *.pt
+!weights/
+!weights/best.pt
 *.pb
 *.onnx
 *.engine
