@@ -15,6 +15,14 @@ FROM python:3.11-slim
 RUN useradd -m -u 1000 user
 WORKDIR /app
 
+# OpenCV (pulled by ultralytics) needs these shared libs on python:slim.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+        libgl1 \
+        libglib2.0-0 \
+        libxcb1 \
+ && rm -rf /var/lib/apt/lists/*
+
 # CPU-only torch wheels — saves ~1.5 GB vs the default cuda-bundled torch.
 RUN pip install --no-cache-dir --upgrade pip \
  && pip install --no-cache-dir torch torchvision \
