@@ -167,13 +167,14 @@ cython_debug/
 # datasets and projects
 datasets/
 runs/
-tests/
 .DS_Store
 
 # Neural Network weights
 weights/
 *.weights
 *.pt
+!weights/
+!weights/best.pt
 *.pb
 *.onnx
 *.engine
@@ -191,3 +192,23 @@ pnnx*
 # Worktrees
 .worktrees/
 
+
+# --- SmileOrNot additions ---
+
+# Astro / Node
+frontend/node_modules/
+frontend/dist/
+smileornot/static/
+
+# Data pipeline (large, regenerable)
+data/
+*.zip
+*.tar.gz
+
+# Local environments
+.venv/
+.env
+.DS_Store
+
+# Claude Code local settings (machine-specific; commit selectively if desired)
+.claude/
