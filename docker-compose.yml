@@ -1,26 +1,11 @@
-# ============================================================
-# SmileOrNot — Dokploy Compose
-# Single FastAPI service serving /predict + Astro static frontend.
-# Set the Host(`...`) rule in Dokploy to your real domain.
-# ============================================================
+version: "3.8"
 
 services:
   smileornot:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: smileornot
     restart: unless-stopped
-    expose:
-      - "7860"
-    networks:
-      - dokploy-network
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.smileornot-app.rule=Host(`smileornot.your-domain.com`)
-      - traefik.http.routers.smileornot-app.entrypoints=websecure
-      - traefik.http.routers.smileornot-app.tls.certResolver=letsencrypt
-      - traefik.http.services.smileornot-app.loadbalancer.server.port=7860
-
-networks:
-  dokploy-network:
-    external: true
+    ports:
+      - "7860:7860"
