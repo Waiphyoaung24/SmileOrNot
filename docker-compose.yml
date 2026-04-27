@@ -5,7 +5,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: smileornot
     restart: unless-stopped
     ports:
       - "7860:7860"
+    networks:
+      - dokploy-network
+
+networks:
+  dokploy-network:
+    external: true
