@@ -63,7 +63,7 @@ version = { attr = "smileornot.__version__" }
 
 [tool.pytest.ini_options]
 addopts = "--durations=30 --color=yes"
-norecursedirs = [".git", "dist", "build", "frontend", "data", "weights"]
+norecursedirs = [".git", "dist", "build", "frontend", "data", "weights", ".worktrees"]
 
 [tool.ruff]
 line-length = 120

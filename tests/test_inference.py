@@ -37,3 +37,16 @@ def test_predict_no_face(detector: SmileDetector) -> None:
 def test_predict_invalid_bytes(detector: SmileDetector) -> None:
     with pytest.raises(Exception):  # PIL raises UnidentifiedImageError
         detector.predict_bytes(b"not a jpeg")
+
+
+from smileornot.inference import YoloDetector  # noqa: E402
+
+
+@pytest.mark.skipif(not WEIGHTS.exists(), reason="weights/best.pt absent")
+def test_yolo_detector_uses_supplied_class_names() -> None:
+    det = YoloDetector(WEIGHTS, class_names=["alpha", "beta"])
+    raw = (FIXTURES / "smile.jpg").read_bytes()
+    boxes, ms = det.predict_bytes(raw)
+    assert ms > 0
+    for b in boxes:
+        assert b["class"] in {"alpha", "beta"}
