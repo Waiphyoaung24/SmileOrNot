@@ -1,0 +1,12 @@
+# Ultralytics dataset config for canspector.
+# Upload data/can/yolo/ + this file to Ultralytics Platform; train YOLO26n.
+path: ../data/can/yolo
+train: images/train
+val: images/val
+test: images/test
+
+names:
+  0: intact_labeled
+  1: intact_unlabeled
+  2: damaged_labeled
+  3: damaged_unlabeled
