@@ -20,7 +20,7 @@ CAN_WEIGHTS = ROOT / "weights" / "can_best.pt"
 STATIC_DIR = Path(__file__).parent / "static"
 MAX_UPLOAD_BYTES = 2_000_000
 
-CAN_CLASSES = ["intact_labeled", "intact_unlabeled", "damaged_labeled", "damaged_unlabeled"]
+CAN_CLASSES = ["can"]
 
 log = logging.getLogger("smileornot")
 

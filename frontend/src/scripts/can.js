@@ -1,10 +1,7 @@
 import { initLiveDetector, detectStill } from './detector.js';
 
 const CAN_COLORS = {
-  intact_labeled: '#22c55e',
-  intact_unlabeled: '#84cc16',
-  damaged_labeled: '#f59e0b',
-  damaged_unlabeled: '#ef4444',
+  can: '#22c55e',
 };
 
 const status = document.getElementById('status');
