@@ -40,6 +40,7 @@ dependencies = [
     "pillow>=10.0",
     "python-multipart>=0.0.9",
     "numpy",
+    "roboflow>=1.1",
 ]
 
 [project.optional-dependencies]
