@@ -123,3 +123,29 @@ button:active {
   .nav-list { flex-direction: column; overflow: hidden; height: 0; opacity: 0; }
   .nav-list.open { height: auto; opacity: 1; }
 }
+
+.mode-toggle {
+  display: inline-flex;
+  border: 1px solid #1f2937;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  margin: 0.5rem 0 1rem;
+}
+.mode-toggle button {
+  background: transparent;
+  color: #cbd5e1;
+  border: 0;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+.mode-toggle button[aria-selected='true'] {
+  background: #1e293b;
+  color: #fff;
+}
+.upload-label {
+  display: block;
+  margin: 0.5rem 0 1rem;
+}
+#upload-image { width: 100%; display: block; }
+.stage { position: relative; }
+.overlay { position: absolute; inset: 0; pointer-events: none; }

@@ -1,0 +1,53 @@
+import { initLiveDetector, detectStill } from './detector.js';
+
+const CAN_COLORS = {
+  intact_labeled: '#22c55e',
+  intact_unlabeled: '#84cc16',
+  damaged_labeled: '#f59e0b',
+  damaged_unlabeled: '#ef4444',
+};
+
+const status = document.getElementById('status');
+const livePane = document.getElementById('live-pane');
+const uploadPane = document.getElementById('upload-pane');
+const liveBtn = document.getElementById('mode-live');
+const uploadBtn = document.getElementById('mode-upload');
+
+initLiveDetector({
+  endpoint: '/predict/can',
+  classColors: CAN_COLORS,
+  elements: {
+    video: document.getElementById('video'),
+    overlay: document.getElementById('overlay-live'),
+    status,
+    toggle: document.getElementById('toggle'),
+  },
+});
+
+const fileInput = document.getElementById('file-input');
+const image = document.getElementById('upload-image');
+const overlayUpload = document.getElementById('overlay-upload');
+
+fileInput.addEventListener('change', async () => {
+  const file = fileInput.files?.[0];
+  if (!file) return;
+  await detectStill({
+    endpoint: '/predict/can',
+    classColors: CAN_COLORS,
+    file,
+    overlay: overlayUpload,
+    image,
+    status,
+  });
+});
+
+function setMode(mode) {
+  const live = mode === 'live';
+  livePane.hidden = !live;
+  uploadPane.hidden = live;
+  liveBtn.setAttribute('aria-selected', String(live));
+  uploadBtn.setAttribute('aria-selected', String(!live));
+}
+
+liveBtn.addEventListener('click', () => setMode('live'));
+uploadBtn.addEventListener('click', () => setMode('upload'));

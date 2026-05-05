@@ -1,0 +1,34 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Canspector">
+  <h1>Can condition</h1>
+
+  <div class="mode-toggle" role="tablist">
+    <button role="tab" id="mode-live" aria-selected="true">Live</button>
+    <button role="tab" id="mode-upload" aria-selected="false">Upload</button>
+  </div>
+
+  <p id="status">Pick a mode.</p>
+
+  <section id="live-pane" class="stage">
+    <video id="video" playsinline autoplay muted></video>
+    <canvas id="overlay-live" class="overlay"></canvas>
+    <button id="toggle">Start Camera</button>
+  </section>
+
+  <section id="upload-pane" hidden>
+    <label class="upload-label">
+      Photo
+      <input id="file-input" type="file" accept="image/*" capture="environment" />
+    </label>
+    <div class="stage">
+      <img id="upload-image" alt="" />
+      <canvas id="overlay-upload" class="overlay"></canvas>
+    </div>
+  </section>
+
+  <script>
+    import '../scripts/can.js';
+  </script>
+</Base>
