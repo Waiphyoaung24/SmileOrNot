@@ -1,9 +1,10 @@
 # Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
 
-"""FastAPI app: loads SmileDetector at startup, serves /predict + static assets."""
+"""FastAPI app: smile + can detectors, /predict + /predict/can, static assets."""
 
 from __future__ import annotations
 
+import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -11,37 +12,59 @@ from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from smileornot.inference import SmileDetector
+from smileornot.inference import YoloDetector
 
-WEIGHTS_PATH = Path(__file__).parent.parent / "weights" / "best.pt"
+ROOT = Path(__file__).parent.parent
+SMILE_WEIGHTS = ROOT / "weights" / "best.pt"
+CAN_WEIGHTS = ROOT / "weights" / "can_best.pt"
 STATIC_DIR = Path(__file__).parent / "static"
 MAX_UPLOAD_BYTES = 2_000_000
+
+CAN_CLASSES = ["intact_labeled", "intact_unlabeled", "damaged_labeled", "damaged_unlabeled"]
+
+log = logging.getLogger("smileornot")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Load the YOLO model once before the first request."""
-    app.state.detector = SmileDetector(WEIGHTS_PATH, device="cpu")
+    app.state.smile_detector = YoloDetector(
+        SMILE_WEIGHTS, class_names=["smiling", "neutral"], device="cpu"
+    )
+    if CAN_WEIGHTS.exists():
+        app.state.can_detector = YoloDetector(CAN_WEIGHTS, class_names=CAN_CLASSES, device="cpu")
+    else:
+        log.warning("weights/can_best.pt missing; /predict/can will return 503")
+        app.state.can_detector = None
     yield
 
 
-app = FastAPI(lifespan=lifespan, title="SmileOrNot", version="0.1.0")
+app = FastAPI(lifespan=lifespan, title="SmileOrNot", version="0.2.0")
 
 
-@app.post("/predict")
-async def predict(file: UploadFile = File(...)) -> JSONResponse:
-    """Run smile/neutral detection on an uploaded image frame."""
+async def _read_image(file: UploadFile) -> bytes:
     if not (file.content_type or "").startswith("image/"):
         raise HTTPException(status_code=415, detail="Expected an image upload")
     raw = await file.read()
     if len(raw) > MAX_UPLOAD_BYTES:
         raise HTTPException(status_code=413, detail="Frame too large")
-    boxes, ms = app.state.detector.predict_bytes(raw)
+    return raw
+
+
+@app.post("/predict")
+async def predict(file: UploadFile = File(...)) -> JSONResponse:
+    raw = await _read_image(file)
+    boxes, ms = app.state.smile_detector.predict_bytes(raw)
     return JSONResponse({"boxes": boxes, "inference_ms": ms})
 
 
-# Static mount registered last so route handlers (above) take precedence.
-# StaticFiles raises if the directory doesn't exist; create it lazily so the
-# import of this module doesn't fail before `npm run build` has populated it.
+@app.post("/predict/can")
+async def predict_can(file: UploadFile = File(...)) -> JSONResponse:
+    if app.state.can_detector is None:
+        raise HTTPException(status_code=503, detail="Can detector not loaded")
+    raw = await _read_image(file)
+    boxes, ms = app.state.can_detector.predict_bytes(raw)
+    return JSONResponse({"boxes": boxes, "inference_ms": ms})
+
+
 STATIC_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")

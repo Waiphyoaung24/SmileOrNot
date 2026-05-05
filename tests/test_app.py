@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 from smileornot.app import app
 
 FIXTURES = Path(__file__).parent / "fixtures"
+CAN_WEIGHTS = Path(__file__).parent.parent / "weights" / "can_best.pt"
 
 
 @pytest.fixture(scope="session")
@@ -43,6 +44,23 @@ def test_predict_rejects_oversized(client: TestClient) -> None:
         files={"file": ("big.jpg", big, "image/jpeg")},
     )
     assert r.status_code == 413
+
+
+def test_predict_can_returns_503_if_weights_missing(client: TestClient) -> None:
+    if CAN_WEIGHTS.exists():
+        pytest.skip("can weights present; this test only runs without them")
+    raw = (FIXTURES / "smile.jpg").read_bytes()
+    r = client.post("/predict/can", files={"file": ("frame.jpg", raw, "image/jpeg")})
+    assert r.status_code == 503
+
+
+@pytest.mark.skipif(not CAN_WEIGHTS.exists(), reason="weights/can_best.pt absent")
+def test_predict_can_returns_boxes(client: TestClient) -> None:
+    raw = (FIXTURES / "smile.jpg").read_bytes()
+    r = client.post("/predict/can", files={"file": ("frame.jpg", raw, "image/jpeg")})
+    assert r.status_code == 200
+    body = r.json()
+    assert "boxes" in body and "inference_ms" in body
 
 
 def test_index_served(client: TestClient) -> None:
