@@ -1,0 +1,38 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import Navbar from '../components/Navbar.astro';
+
+interface Props {
+  title: string;
+}
+const { title } = Astro.props;
+---
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+    <ClientRouter />
+  </head>
+  <body>
+    <Navbar />
+    <main>
+      <slot />
+    </main>
+
+    <script>
+      import { gsap } from 'gsap';
+      function animateMain() {
+        const el = document.querySelector('main');
+        if (el) gsap.fromTo(el, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.3 });
+      }
+      animateMain();
+      document.addEventListener('astro:after-swap', animateMain);
+    </script>
+
+    <style is:global>
+      @import '../styles/styles.css';
+    </style>
+  </body>
+</html>

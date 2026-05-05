@@ -80,3 +80,46 @@ button {
 button:active {
   transform: scale(0.97);
 }
+
+.nav {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #1f2937;
+  background: #0b1020;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.nav-toggle {
+  display: none;
+  background: transparent;
+  color: inherit;
+  font-size: 1.25rem;
+  border: 0;
+  padding: 0.25rem 0.5rem;
+}
+.nav-list {
+  display: flex;
+  gap: 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.nav-list a {
+  color: #cbd5e1;
+  text-decoration: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+}
+.nav-list a[aria-current='page'] {
+  color: #ffffff;
+  background: #1e293b;
+}
+
+@media (max-width: 600px) {
+  .nav { flex-direction: column; align-items: stretch; }
+  .nav-toggle { display: block; align-self: flex-end; }
+  .nav-list { flex-direction: column; overflow: hidden; height: 0; opacity: 0; }
+  .nav-list.open { height: auto; opacity: 1; }
+}

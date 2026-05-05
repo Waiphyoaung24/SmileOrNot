@@ -1,0 +1,54 @@
+---
+const path = Astro.url.pathname;
+const links = [
+  { href: '/', label: 'Smile' },
+  { href: '/can', label: 'Can' },
+];
+---
+<nav class="nav" aria-label="Primary">
+  <button class="nav-toggle" aria-controls="nav-list" aria-expanded="false">☰</button>
+  <ul id="nav-list" class="nav-list">
+    {links.map((l) => (
+      <li>
+        <a
+          href={l.href}
+          aria-current={path === l.href ? 'page' : undefined}
+        >{l.label}</a>
+      </li>
+    ))}
+  </ul>
+</nav>
+
+<script>
+  import { gsap } from 'gsap';
+
+  function animateNav() {
+    gsap.fromTo(
+      '.nav-list li',
+      { y: -20, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: 'power2.out' },
+    );
+  }
+
+  function wireToggle() {
+    const btn = document.querySelector('.nav-toggle');
+    const list = document.getElementById('nav-list');
+    if (!btn || !list) return;
+    btn.addEventListener('click', () => {
+      const open = list.classList.toggle('open');
+      btn.setAttribute('aria-expanded', String(open));
+      gsap.fromTo(
+        list,
+        { height: open ? 0 : 'auto', opacity: open ? 0 : 1 },
+        { height: open ? 'auto' : 0, opacity: open ? 1 : 0, duration: 0.25 },
+      );
+    });
+  }
+
+  function init() {
+    animateNav();
+    wireToggle();
+  }
+  init();
+  document.addEventListener('astro:after-swap', init);
+</script>
