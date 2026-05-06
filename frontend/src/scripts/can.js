@@ -1,6 +1,6 @@
 import { initLiveDetector, detectStill } from './detector.js';
 
-const CAN_COLORS = { can: '#7cff8d' };
+const CAN_COLORS = { can: '#94fcff' };
 
 const status = document.getElementById('status');
 const livePane = document.getElementById('live-pane');

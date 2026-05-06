@@ -155,18 +155,18 @@ function drawBoxes(ctx, overlay, boxes, classColors) {
     const y = b.y1 * overlay.height;
     const w = (b.x2 - b.x1) * overlay.width;
     const h = (b.y2 - b.y1) * overlay.height;
-    const color = classColors[b.class] ?? '#7cff8d';
+    const color = classColors[b.class] ?? '#94fcff';
     ctx.lineWidth = 2;
     ctx.strokeStyle = color;
     ctx.strokeRect(x, y, w, h);
 
     const label = `${b.class.toUpperCase()} ${(b.conf * 100).toFixed(0)}%`;
-    ctx.font = '600 11px "JetBrains Mono", ui-monospace, monospace';
+    ctx.font = '700 11px "Orbitron", "Rajdhani", sans-serif';
     const tw = ctx.measureText(label).width;
     ctx.fillStyle = color;
-    ctx.fillRect(x, y - 18, tw + 10, 18);
-    ctx.fillStyle = '#07090b';
-    ctx.fillText(label, x + 5, y - 5);
+    ctx.fillRect(x, y - 18, tw + 12, 18);
+    ctx.fillStyle = '#0e1418';
+    ctx.fillText(label, x + 6, y - 5);
   }
 }
 
