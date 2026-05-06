@@ -1,31 +1,89 @@
 ---
 import Base from '../layouts/Base.astro';
 ---
-<Base title="Canspector">
-  <h1>Can condition</h1>
+<Base title="Can · Vision Lab">
+  <section class="module">
+    <header class="module-header">
+      <span class="module-id">Module&nbsp;02 / Can</span>
+      <span class="module-meta">YOLO11n · 4 137&nbsp;img · mAP@50&nbsp;0.96</span>
+    </header>
 
-  <div class="mode-toggle" role="tablist">
-    <button role="tab" id="mode-live" aria-selected="true">Live</button>
-    <button role="tab" id="mode-upload" aria-selected="false">Upload</button>
-  </div>
+    <h1 class="module-title">Detect any <em>can</em>.</h1>
+    <p class="module-sub">
+      Custom YOLO11n trained on a merged Roboflow corpus (3 309 / 413 / 415).
+      Live mode runs the camera; upload mode runs a single still through the
+      same endpoint.
+    </p>
 
-  <p id="status">Pick a mode.</p>
-
-  <section id="live-pane" class="stage">
-    <video id="video" playsinline autoplay muted></video>
-    <canvas id="overlay-live" class="overlay"></canvas>
-    <button id="toggle">Start Camera</button>
-  </section>
-
-  <section id="upload-pane" hidden>
-    <label class="upload-label">
-      Photo
-      <input id="file-input" type="file" accept="image/*" capture="environment" />
-    </label>
-    <div class="stage">
-      <img id="upload-image" alt="" />
-      <canvas id="overlay-upload" class="overlay"></canvas>
+    <div class="control-bar">
+      <div class="mode-toggle" role="tablist" aria-label="Input mode">
+        <button role="tab" id="mode-live" aria-selected="true">Live</button>
+        <button role="tab" id="mode-upload" aria-selected="false">Upload</button>
+      </div>
+      <div class="rec-chip" data-rec>
+        <span class="rec-dot"></span>
+        <span data-rec-label>Standby</span>
+      </div>
+      <div class="control-spacer"></div>
+      <span>Endpoint&nbsp;: <strong>/predict/can</strong></span>
     </div>
+
+    <section id="live-pane" class="live-pane">
+      <div class="viewport" data-viewport>
+        <div class="viewport-grid" aria-hidden="true"></div>
+        <div class="viewport-scanline" aria-hidden="true"></div>
+        <div class="viewport-bracket viewport-bracket-tl" aria-hidden="true"></div>
+        <div class="viewport-bracket viewport-bracket-tr" aria-hidden="true"></div>
+        <div class="viewport-bracket viewport-bracket-bl" aria-hidden="true"></div>
+        <div class="viewport-bracket viewport-bracket-br" aria-hidden="true"></div>
+        <span class="viewport-tag viewport-tag-id">CAM_01 · LIVE</span>
+        <video id="video" playsinline autoplay muted></video>
+        <canvas id="overlay-live" class="overlay"></canvas>
+      </div>
+    </section>
+
+    <section id="upload-pane" class="upload-pane" hidden>
+      <label class="upload-input">
+        <input id="file-input" type="file" accept="image/*" capture="environment" />
+      </label>
+      <div class="viewport" data-viewport>
+        <div class="viewport-grid" aria-hidden="true"></div>
+        <div class="viewport-bracket viewport-bracket-tl" aria-hidden="true"></div>
+        <div class="viewport-bracket viewport-bracket-tr" aria-hidden="true"></div>
+        <div class="viewport-bracket viewport-bracket-bl" aria-hidden="true"></div>
+        <div class="viewport-bracket viewport-bracket-br" aria-hidden="true"></div>
+        <span class="viewport-tag viewport-tag-id">STILL · UPLOAD</span>
+        <img id="upload-image" alt="" />
+        <canvas id="overlay-upload" class="overlay"></canvas>
+      </div>
+    </section>
+
+    <div class="telemetry">
+      <div class="chip" data-chip="count">
+        <span class="chip-label">Targets</span>
+        <span class="chip-value" data-stat="count">—</span>
+      </div>
+      <div class="chip">
+        <span class="chip-label">Inference</span>
+        <span class="chip-value">
+          <span data-stat="ms">—</span><span class="chip-unit">ms</span>
+        </span>
+      </div>
+      <div class="chip">
+        <span class="chip-label">mAP@50</span>
+        <span class="chip-value">0.96</span>
+      </div>
+      <div class="chip">
+        <span class="chip-label">Class</span>
+        <span class="chip-value chip-value-text" data-stat="classes">can</span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-primary" id="toggle">Start&nbsp;·&nbsp;Camera</button>
+    </div>
+
+    <p class="status-line" id="status">Awaiting&nbsp;init.</p>
   </section>
 
   <script>

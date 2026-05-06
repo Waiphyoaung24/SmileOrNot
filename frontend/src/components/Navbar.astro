@@ -1,54 +1,52 @@
 ---
-const path = Astro.url.pathname;
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
 const links = [
-  { href: '/', label: 'Smile' },
-  { href: '/can', label: 'Can' },
+  { href: '/', code: 'M01', label: 'Smile' },
+  { href: '/can', code: 'M02', label: 'Can' },
 ];
 ---
-<nav class="nav" aria-label="Primary">
-  <button class="nav-toggle" aria-controls="nav-list" aria-expanded="false">☰</button>
-  <ul id="nav-list" class="nav-list">
+<header class="hud-header">
+  <div class="hud-brand">
+    <span class="hud-brand-mark" aria-hidden="true">▣</span>
+    <span class="hud-brand-name">VISION&nbsp;LAB</span>
+    <span class="hud-brand-version">v0.2.0</span>
+  </div>
+
+  <nav class="hud-nav" aria-label="Primary">
     {links.map((l) => (
-      <li>
-        <a
-          href={l.href}
-          aria-current={path === l.href ? 'page' : undefined}
-        >{l.label}</a>
-      </li>
+      <a href={l.href} aria-current={path === l.href ? 'page' : undefined}>
+        {l.code} · {l.label}
+      </a>
     ))}
-  </ul>
-</nav>
+  </nav>
+
+  <div class="hud-status" aria-live="polite">
+    <span class="led" aria-hidden="true"></span>
+    <span>Sys&nbsp;Online</span>
+  </div>
+</header>
 
 <script>
   import { gsap } from 'gsap';
 
   function animateNav() {
     gsap.fromTo(
-      '.nav-list li',
-      { y: -20, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: 'power2.out' },
+      '.hud-nav a',
+      { y: -10, opacity: 0 },
+      { y: 0, opacity: 1, duration: 0.35, stagger: 0.06, ease: 'power2.out' },
+    );
+    gsap.fromTo(
+      '.hud-brand',
+      { x: -8, opacity: 0 },
+      { x: 0, opacity: 1, duration: 0.35, ease: 'power2.out' },
+    );
+    gsap.fromTo(
+      '.hud-status',
+      { x: 8, opacity: 0 },
+      { x: 0, opacity: 1, duration: 0.35, ease: 'power2.out' },
     );
   }
 
-  function wireToggle() {
-    const btn = document.querySelector('.nav-toggle');
-    const list = document.getElementById('nav-list');
-    if (!btn || !list) return;
-    btn.addEventListener('click', () => {
-      const open = list.classList.toggle('open');
-      btn.setAttribute('aria-expanded', String(open));
-      gsap.fromTo(
-        list,
-        { height: open ? 0 : 'auto', opacity: open ? 0 : 1 },
-        { height: open ? 'auto' : 0, opacity: open ? 1 : 0, duration: 0.25 },
-      );
-    });
-  }
-
-  function init() {
-    animateNav();
-    wireToggle();
-  }
-  init();
-  document.addEventListener('astro:after-swap', init);
+  animateNav();
+  document.addEventListener('astro:after-swap', animateNav);
 </script>
