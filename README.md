@@ -1,5 +1,5 @@
 ---
-title: SmileOrNot
+title: Vision
 emoji: 😀
 colorFrom: green
 colorTo: gray
@@ -9,9 +9,9 @@ pinned: false
 license: agpl-3.0
 ---
 
-# SmileOrNot
+# Vision
 
-Live smile detection in the browser, end-to-end with the Ultralytics ecosystem:
+Real-time browser-based object detection demo (smile + can detectors), end-to-end with the Ultralytics ecosystem:
 data sourced from CelebA, auto-labeled with a pretrained face detector, refined
 on Ultralytics Platform's annotation tooling, trained as a YOLO26n model on
 Platform cloud GPUs, and self-hosted as a FastAPI service behind a static

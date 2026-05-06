@@ -38,7 +38,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(lifespan=lifespan, title="SmileOrNot", version="0.2.0")
+app = FastAPI(lifespan=lifespan, title="Vision", version="0.2.0")
 
 
 async def _read_image(file: UploadFile) -> bytes:
