@@ -8,8 +8,9 @@
 
 const STATE = { IDLE: 'idle', RUNNING: 'running', ERROR: 'error' };
 
-export function initLiveDetector({ endpoint, classColors, elements }) {
+export function initLiveDetector({ endpoint, classColors, elements, filter }) {
   const { video, overlay, status, toggle } = elements;
+  const filterBoxes = filter ?? ((b) => b);
   const ctx = overlay.getContext('2d');
   const captureCanvas = document.createElement('canvas');
   const captureCtx = captureCanvas.getContext('2d');
@@ -74,8 +75,9 @@ export function initLiveDetector({ endpoint, classColors, elements }) {
           signal: abortController.signal,
         });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const { boxes, inference_ms } = await r.json();
+        const { boxes: rawBoxes, inference_ms } = await r.json();
         if (state !== STATE.RUNNING) return;
+        const boxes = filterBoxes(rawBoxes);
         drawBoxes(ctx, overlay, boxes, classColors);
         updateStats(boxes, inference_ms);
       } catch (e) {
@@ -121,7 +123,9 @@ export async function detectStill({
   overlay,
   image,
   status,
+  filter,
 }) {
+  const filterBoxes = filter ?? ((b) => b);
   const ctx = overlay.getContext('2d');
   const viewport = image.closest('[data-viewport]');
   const emptyEl = viewport?.querySelector('.viewport-empty');
@@ -142,7 +146,8 @@ export async function detectStill({
     if (status) status.textContent = `Error: HTTP ${r.status}`;
     return;
   }
-  const { boxes, inference_ms } = await r.json();
+  const { boxes: rawBoxes, inference_ms } = await r.json();
+  const boxes = filterBoxes(rawBoxes);
   drawBoxes(ctx, overlay, boxes, classColors);
   updateStats(boxes, inference_ms);
   if (status) status.textContent = 'Done.';

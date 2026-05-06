@@ -2,6 +2,22 @@ import { initLiveDetector, detectStill } from './detector.js';
 
 const CAN_COLORS = { can: '#94fcff' };
 
+// The training set had only can-containing images, so the model fits a "can"
+// box to anything when the scene is empty. Drop low-confidence and
+// implausibly-large detections before rendering.
+const MIN_CONF = 0.6;
+const MAX_AREA = 0.5;       // > 50% of frame → almost certainly bogus
+const MAX_SIDE = 0.85;      // a single side > 85% of frame → bogus
+const filter = (boxes) =>
+  boxes.filter((b) => {
+    if (b.conf < MIN_CONF) return false;
+    const w = b.x2 - b.x1;
+    const h = b.y2 - b.y1;
+    if (w * h > MAX_AREA) return false;
+    if (w > MAX_SIDE || h > MAX_SIDE) return false;
+    return true;
+  });
+
 const status = document.getElementById('status');
 const livePane = document.getElementById('live-pane');
 const uploadPane = document.getElementById('upload-pane');
@@ -13,6 +29,7 @@ const uploadLabel = document.getElementById('upload-btn');
 initLiveDetector({
   endpoint: '/predict/can',
   classColors: CAN_COLORS,
+  filter,
   elements: {
     video: document.getElementById('video'),
     overlay: document.getElementById('overlay-live'),
@@ -31,6 +48,7 @@ fileInput.addEventListener('change', async () => {
   await detectStill({
     endpoint: '/predict/can',
     classColors: CAN_COLORS,
+    filter,
     file,
     overlay: overlayUpload,
     image,
