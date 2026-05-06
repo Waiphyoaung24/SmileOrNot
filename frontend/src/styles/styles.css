@@ -308,6 +308,12 @@ main {
 .viewport img { object-fit: contain; background: var(--bg); }
 .viewport canvas.overlay { pointer-events: none; z-index: 2; }
 
+/* Hide the broken-image icon until JS assigns a src. */
+.viewport img:not([src]),
+.viewport img[src=''] {
+  display: none;
+}
+
 /* Corner brackets — kept as the design anchor, recoloured to brand cyan. */
 .viewport-bracket {
   position: absolute;
