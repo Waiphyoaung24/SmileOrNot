@@ -213,3 +213,8 @@ data/
 
 # Claude Code local settings (machine-specific; commit selectively if desired)
 .claude/
+
+# Local screenshots / scratch artefacts
+*.png
+nohup.out
+.playwright-mcp/
