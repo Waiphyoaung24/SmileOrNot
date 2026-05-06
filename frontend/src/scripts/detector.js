@@ -8,9 +8,16 @@
 
 const STATE = { IDLE: 'idle', RUNNING: 'running', ERROR: 'error' };
 
-export function initLiveDetector({ endpoint, classColors, elements, filter }) {
-  const { video, overlay, status, toggle } = elements;
+export function initLiveDetector({
+  endpoint,
+  classColors,
+  elements,
+  filter,
+  facingMode = 'environment',
+}) {
+  const { video, overlay, status, toggle, flip } = elements;
   const filterBoxes = filter ?? ((b) => b);
+  let currentFacing = facingMode;
   const ctx = overlay.getContext('2d');
   const captureCanvas = document.createElement('canvas');
   const captureCtx = captureCanvas.getContext('2d');
@@ -25,7 +32,7 @@ export function initLiveDetector({ endpoint, classColors, elements, filter }) {
     try {
       setStatus('Requesting camera…');
       stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: { ideal: 1280 }, facingMode: { ideal: 'environment' } },
+        video: { width: { ideal: 1280 }, facingMode: { ideal: currentFacing } },
         audio: false,
       });
       video.srcObject = stream;
@@ -113,6 +120,15 @@ export function initLiveDetector({ endpoint, classColors, elements, filter }) {
   toggle.addEventListener('click', () =>
     state === STATE.RUNNING ? stop() : start(),
   );
+
+  flip?.addEventListener('click', async () => {
+    currentFacing = currentFacing === 'user' ? 'environment' : 'user';
+    if (state === STATE.RUNNING) {
+      stop();
+      await start();
+    }
+  });
+
   window.addEventListener('resize', () => state === STATE.RUNNING && sizeOverlay());
 }
 

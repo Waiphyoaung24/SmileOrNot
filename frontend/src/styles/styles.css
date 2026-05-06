@@ -444,7 +444,8 @@ main {
   box-shadow: 0 0 18px var(--card-glow);
 }
 
-.upload-btn {
+.upload-btn,
+.btn-secondary {
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -462,8 +463,19 @@ main {
   transition: background 0.3s var(--ease), color 0.3s var(--ease);
 }
 
-.upload-btn:hover {
+.upload-btn:hover,
+.btn-secondary:hover {
   background: rgba(148, 252, 255, 0.08);
+}
+
+.btn-secondary svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .upload-btn input[type='file'] {

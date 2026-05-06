@@ -39,6 +39,15 @@ import Base from '../layouts/Base.astro';
 
     <div class="actions">
       <button class="btn-primary" id="toggle">Start camera</button>
+      <button class="btn-secondary" id="flip" type="button" aria-label="Flip camera">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 8h13a4 4 0 0 1 4 4v1" />
+          <polyline points="6 5 3 8 6 11" />
+          <path d="M21 16H8a4 4 0 0 1-4-4v-1" />
+          <polyline points="18 19 21 16 18 13" />
+        </svg>
+        Flip
+      </button>
     </div>
 
     <p class="status-line" id="status">Awaiting input.</p>
