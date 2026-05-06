@@ -1,8 +1,8 @@
 ---
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
 const links = [
-  { href: '/', code: 'M01', label: 'Smile' },
-  { href: '/can', code: 'M02', label: 'Can' },
+  { href: '/', match: '/', code: 'M01', label: 'Smile' },
+  { href: '/can/', match: '/can', code: 'M02', label: 'Can' },
 ];
 ---
 <header class="hud-header">
@@ -14,7 +14,7 @@ const links = [
 
   <nav class="hud-nav" aria-label="Primary">
     {links.map((l) => (
-      <a href={l.href} aria-current={path === l.href ? 'page' : undefined}>
+      <a href={l.href} aria-current={path === l.match ? 'page' : undefined}>
         {l.code} · {l.label}
       </a>
     ))}
