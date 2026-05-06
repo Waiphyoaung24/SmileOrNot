@@ -175,6 +175,7 @@ weights/
 *.pt
 !weights/
 !weights/best.pt
+!weights/can_best.pt
 *.pb
 *.onnx
 *.engine
