@@ -36,7 +36,6 @@ initLiveDetector({
     overlay: document.getElementById('overlay-live'),
     status,
     toggle: startBtn,
-    flip: document.getElementById('flip'),
   },
 });
 
@@ -58,8 +57,6 @@ fileInput.addEventListener('change', async () => {
   });
 });
 
-const flipBtn = document.getElementById('flip');
-
 function setMode(mode) {
   const live = mode === 'live';
   livePane.hidden = !live;
@@ -67,7 +64,6 @@ function setMode(mode) {
   liveBtn.setAttribute('aria-selected', String(live));
   uploadBtn.setAttribute('aria-selected', String(!live));
   startBtn.hidden = !live;
-  flipBtn.hidden = !live;
   uploadLabel.hidden = live;
 }
 
