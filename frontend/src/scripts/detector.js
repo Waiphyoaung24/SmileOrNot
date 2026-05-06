@@ -1,12 +1,10 @@
 // Parameterized detector controller. Used by both the smile and can pages.
 //
 // Renders into the Vision-Lab HUD when present:
-//   [data-stat="count"]   → integer detection count
-//   [data-stat="ms"]      → inference time (number only, "ms" unit is sibling)
-//   [data-stat="classes"] → human breakdown ("smiling: 1 · neutral: 2")
-//   [data-rec]            → REC chip; toggles .is-rec
-//   [data-rec-label]      → "Standby" | "Live" | "Stopped" | "Error"
-//   [data-viewport]       → adds .is-running while streaming for scanline/grid
+//   [data-stat="count"]   → integer detection count (in the stat row)
+//   [data-stat="ms"]      → inference time (number only)
+//   [data-stat="classes"] → optional class breakdown
+//   [data-viewport]       → adds .is-running while streaming
 
 const STATE = { IDLE: 'idle', RUNNING: 'running', ERROR: 'error' };
 
@@ -20,10 +18,7 @@ export function initLiveDetector({ endpoint, classColors, elements }) {
   let abortController = null;
 
   const viewport = video.closest('[data-viewport]');
-  const recChip = document.querySelector('[data-rec]');
-  const recLabel = document.querySelector('[data-rec-label]');
-
-  setRec('Standby', false);
+  const emptyEl = viewport?.querySelector('.viewport-empty');
 
   async function start() {
     try {
@@ -37,19 +32,18 @@ export function initLiveDetector({ endpoint, classColors, elements }) {
       sizeOverlay();
       state = STATE.RUNNING;
       viewport?.classList.add('is-running');
-      toggle.textContent = 'Stop · Camera';
+      if (emptyEl) emptyEl.style.display = 'none';
+      toggle.textContent = 'Stop camera';
       toggle.dataset.state = 'running';
-      setRec('Live', true);
       setStatus('Streaming.');
       loop();
     } catch (e) {
       state = STATE.ERROR;
-      const msg =
+      setStatus(
         e.name === 'NotAllowedError'
           ? 'Camera permission denied.'
-          : 'Camera unavailable.';
-      setRec('Error', false);
-      setStatus(msg);
+          : 'Camera unavailable.',
+      );
     }
   }
 
@@ -60,9 +54,9 @@ export function initLiveDetector({ endpoint, classColors, elements }) {
     stream = null;
     ctx.clearRect(0, 0, overlay.width, overlay.height);
     viewport?.classList.remove('is-running');
-    toggle.textContent = 'Start · Camera';
+    if (emptyEl) emptyEl.style.display = '';
+    toggle.textContent = 'Start camera';
     delete toggle.dataset.state;
-    setRec('Stopped', false);
     setStatus('Idle.');
     resetStats();
   }
@@ -88,7 +82,6 @@ export function initLiveDetector({ endpoint, classColors, elements }) {
         if (e.name === 'AbortError') return;
         state = STATE.ERROR;
         viewport?.classList.remove('is-running');
-        setRec('Error', false);
         setStatus(`Connection lost: ${e.message}`);
         return;
       }
@@ -115,11 +108,6 @@ export function initLiveDetector({ endpoint, classColors, elements }) {
     if (status) status.textContent = text;
   }
 
-  function setRec(label, on) {
-    if (recLabel) recLabel.textContent = label;
-    if (recChip) recChip.classList.toggle('is-rec', !!on);
-  }
-
   toggle.addEventListener('click', () =>
     state === STATE.RUNNING ? stop() : start(),
   );
@@ -135,11 +123,14 @@ export async function detectStill({
   status,
 }) {
   const ctx = overlay.getContext('2d');
+  const viewport = image.closest('[data-viewport]');
+  const emptyEl = viewport?.querySelector('.viewport-empty');
   const url = URL.createObjectURL(file);
   await new Promise((res) => {
     image.onload = res;
     image.src = url;
   });
+  if (emptyEl) emptyEl.style.display = 'none';
   overlay.width = image.clientWidth;
   overlay.height = image.clientHeight;
   ctx.clearRect(0, 0, overlay.width, overlay.height);
@@ -169,17 +160,6 @@ function drawBoxes(ctx, overlay, boxes, classColors) {
     ctx.strokeStyle = color;
     ctx.strokeRect(x, y, w, h);
 
-    // Corner brackets on each box for the instrument feel.
-    const t = Math.min(14, w * 0.2, h * 0.2);
-    ctx.beginPath();
-    ctx.moveTo(x, y + t); ctx.lineTo(x, y); ctx.lineTo(x + t, y);
-    ctx.moveTo(x + w - t, y); ctx.lineTo(x + w, y); ctx.lineTo(x + w, y + t);
-    ctx.moveTo(x, y + h - t); ctx.lineTo(x, y + h); ctx.lineTo(x + t, y + h);
-    ctx.moveTo(x + w - t, y + h); ctx.lineTo(x + w, y + h); ctx.lineTo(x + w, y + h - t);
-    ctx.lineWidth = 3;
-    ctx.stroke();
-
-    // Label tag.
     const label = `${b.class.toUpperCase()} ${(b.conf * 100).toFixed(0)}%`;
     ctx.font = '600 11px "JetBrains Mono", ui-monospace, monospace';
     const tw = ctx.measureText(label).width;
@@ -199,31 +179,23 @@ function updateStats(boxes, ms) {
 
   const count = boxes.length;
   if (countEl) {
-    countEl.textContent = String(count).padStart(2, '0');
+    countEl.textContent = String(count);
     if (count !== lastCount) {
-      const chip = countEl.closest('.chip');
-      if (chip) {
-        chip.classList.remove('is-pulse');
-        // force reflow so animation restarts.
-        void chip.offsetWidth;
-        chip.classList.add('is-pulse');
-      }
+      countEl.classList.remove('is-pulse');
+      void countEl.offsetWidth;
+      countEl.classList.add('is-pulse');
       lastCount = count;
     }
   }
   if (msEl) msEl.textContent = ms.toFixed(0);
-  if (classesEl) {
-    if (count === 0) {
-      classesEl.textContent = 'none';
-    } else {
-      const counts = boxes.reduce(
-        (acc, b) => ((acc[b.class] = (acc[b.class] || 0) + 1), acc),
-        {},
-      );
-      classesEl.textContent = Object.entries(counts)
-        .map(([k, v]) => `${k}: ${v}`)
-        .join(' · ');
-    }
+  if (classesEl && count > 0) {
+    const counts = boxes.reduce(
+      (acc, b) => ((acc[b.class] = (acc[b.class] || 0) + 1), acc),
+      {},
+    );
+    classesEl.textContent = Object.entries(counts)
+      .map(([k, v]) => `${k}: ${v}`)
+      .join(' · ');
   }
 }
 

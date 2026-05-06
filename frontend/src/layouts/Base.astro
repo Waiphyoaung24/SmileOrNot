@@ -37,18 +37,8 @@ const { title } = Astro.props;
         if (!el) return;
         gsap.fromTo(
           el,
-          { opacity: 0, y: 14 },
-          { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out' },
-        );
-        gsap.fromTo(
-          '.chip',
-          { opacity: 0, y: 8 },
-          { opacity: 1, y: 0, duration: 0.4, stagger: 0.06, ease: 'power2.out', delay: 0.1 },
-        );
-        gsap.fromTo(
-          '.viewport-bracket',
-          { opacity: 0, scale: 0.6 },
-          { opacity: 0.55, scale: 1, duration: 0.5, stagger: 0.08, ease: 'back.out(2)', delay: 0.15 },
+          { opacity: 0, y: 12 },
+          { opacity: 1, y: 0, duration: 0.4, ease: 'power3.out' },
         );
       }
       animateMain();
