@@ -1,0 +1,59 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Smile · Vision">
+  <section class="module">
+    <span class="module-tag">Module&nbsp;01 / Smile</span>
+
+    <h1 class="module-title">Are you <em>smiling</em>?</h1>
+    <p class="module-sub">
+      Real-time face-expression detection. Each face is boxed and labelled
+      <code>smiling</code> or <code>neutral</code> with confidence.
+    </p>
+
+    <div class="control-bar">
+      <span class="endpoint">Endpoint <strong>/predict</strong></span>
+    </div>
+
+    <div class="viewport" data-viewport>
+      <span class="viewport-empty">Camera idle</span>
+      <video id="video" playsinline autoplay muted></video>
+      <canvas id="overlay" class="overlay"></canvas>
+      <div class="viewport-bracket viewport-bracket-tl" aria-hidden="true"></div>
+      <div class="viewport-bracket viewport-bracket-tr" aria-hidden="true"></div>
+      <div class="viewport-bracket viewport-bracket-bl" aria-hidden="true"></div>
+      <div class="viewport-bracket viewport-bracket-br" aria-hidden="true"></div>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="stat-label">Faces</span>
+        <span class="stat-value" data-stat="count">—</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Inference</span>
+        <span class="stat-value"><span data-stat="ms">—</span> ms</span>
+      </div>
+      <span class="stat-meta" data-stat="classes">smiling · neutral</span>
+    </div>
+
+    <div class="actions">
+      <button class="btn-primary" id="toggle">Start camera</button>
+      <button class="btn-secondary" id="flip" type="button" aria-label="Flip camera">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 8h13a4 4 0 0 1 4 4v1" />
+          <polyline points="6 5 3 8 6 11" />
+          <path d="M21 16H8a4 4 0 0 1-4-4v-1" />
+          <polyline points="18 19 21 16 18 13" />
+        </svg>
+        Flip
+      </button>
+    </div>
+
+    <p class="status-line" id="status">Awaiting input.</p>
+  </section>
+
+  <script>
+    import '../scripts/app.js';
+  </script>
+</Base>
