@@ -1,59 +1,485 @@
 ---
-import Base from '../layouts/Base.astro';
+const title = 'Vision by NexApex — Real-time Detection';
+const description = 'Vision is a real-time visual detection lab by NexApex. Smile and object detection with on-device inference, zero data leaks.';
+const ogImage = '/images/nexapex-logo.png';
 ---
-<Base title="Smile · Vision">
-  <section class="module">
-    <span class="module-tag">Module&nbsp;01 / Smile</span>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0e1418" />
+    <link rel="icon" type="image/png" href="/images/nexapex-logo.png" />
+    <link rel="apple-touch-icon" href="/images/nexapex-logo.png" />
 
-    <h1 class="module-title">Are you <em>smiling</em>?</h1>
-    <p class="module-sub">
-      Real-time face-expression detection. Each face is boxed and labelled
-      <code>smiling</code> or <code>neutral</code> with confidence.
-    </p>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
 
-    <div class="control-bar">
-      <span class="endpoint">Endpoint <strong>/predict</strong></span>
-    </div>
+    <link rel="preconnect" href="https://stream.mux.com" crossorigin />
+    <link rel="preconnect" href="https://image.mux.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@mux/mux-video@0/dist/mux-video.mjs"></script>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Rajdhani:wght@300;400;500;600;700&display=swap"
+    />
 
-    <div class="viewport" data-viewport>
-      <span class="viewport-empty">Camera idle</span>
-      <video id="video" playsinline autoplay muted></video>
-      <canvas id="overlay" class="overlay"></canvas>
-      <div class="viewport-bracket viewport-bracket-tl" aria-hidden="true"></div>
-      <div class="viewport-bracket viewport-bracket-tr" aria-hidden="true"></div>
-      <div class="viewport-bracket viewport-bracket-bl" aria-hidden="true"></div>
-      <div class="viewport-bracket viewport-bracket-br" aria-hidden="true"></div>
-    </div>
+    <title>{title}</title>
 
-    <div class="stats">
-      <div class="stat">
-        <span class="stat-label">Faces</span>
-        <span class="stat-value" data-stat="count">—</span>
+    <style is:global>
+      @font-face {
+        font-family: 'Dirtyline';
+        src: url('https://fonts.cdnfonts.com/s/15011/Dirtyline36DaysofType.woff') format('woff');
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+      }
+
+      :root {
+        --nx-display: 'Nevera', 'Orbitron', sans-serif;
+        --nx-body: 'Nexa', 'Rajdhani', sans-serif;
+        --nx-cyan: #94fcff;
+        --nx-white: #f0f1ef;
+        --nx-text: #c8ccc6;
+        --nx-dim: #6e7a84;
+      }
+      *, *::before, *::after { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body {
+        font-family: var(--nx-body);
+        background: #000;
+        color: var(--nx-white);
+        min-height: 100vh;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      a { color: inherit; text-decoration: none; }
+
+      .liquid-glass {
+        background: rgba(255, 255, 255, 0.01);
+        background-blend-mode: luminosity;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        border: none;
+        box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+        position: relative;
+        overflow: hidden;
+      }
+      .liquid-glass::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        padding: 1.4px;
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.45) 0%,
+          rgba(255, 255, 255, 0.15) 20%,
+          rgba(255, 255, 255, 0) 40%,
+          rgba(255, 255, 255, 0) 60%,
+          rgba(255, 255, 255, 0.15) 80%,
+          rgba(255, 255, 255, 0.45) 100%
+        );
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+      }
+
+      .root {
+        font-family: var(--nx-body);
+        position: relative;
+        min-height: 100vh;
+        min-height: 100svh;
+        display: flex;
+        flex-direction: column;
+      }
+      .stage {
+        position: relative;
+        z-index: 20;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        padding: 132px 24px 56px;
+        min-height: 100vh;
+        min-height: 100svh;
+      }
+
+      /* Video background */
+      .video-bg {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        transform: scale(1.08);
+        transform-origin: center;
+        will-change: transform;
+      }
+      .video-bg video,
+      .video-bg mux-video {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        --controls: none;
+      }
+      .video-tint {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        background:
+          radial-gradient(ellipse at center, rgba(0,0,0,0) 30%, rgba(0,0,0,0.55) 100%),
+          linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.15) 30%, rgba(0,0,0,0.55) 100%);
+        pointer-events: none;
+      }
+
+      /* Header */
+      .site-header {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        z-index: 50;
+        padding: 32px 40px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .wordmark {
+        font-family: var(--nx-display);
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--nx-white);
+      }
+      .wordmark sup {
+        font-size: 0.55em;
+        margin-left: 2px;
+        opacity: 0.7;
+        color: var(--nx-cyan);
+      }
+      .nav {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 8px;
+        border-radius: 9999px;
+      }
+      .nav a {
+        font-family: var(--nx-display);
+        font-size: 11px;
+        font-weight: 400;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--nx-text);
+        padding: 6px 16px;
+        border-radius: 9999px;
+        transition: color 0.2s ease;
+      }
+      .nav a:hover { color: var(--nx-cyan); }
+
+      .cta-glass {
+        padding: 10px 20px;
+        border-radius: 9999px;
+        font-family: var(--nx-display);
+        font-size: 11px;
+        font-weight: 400;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--nx-text);
+        transition: color 0.2s ease;
+      }
+      .cta-glass:hover { color: var(--nx-cyan); }
+
+      /* Hero headline */
+      .hero {
+        text-align: center;
+        opacity: 0;
+        transform: translateY(24px);
+        transition: opacity 1s ease, transform 1s ease;
+        width: 100%;
+      }
+      .hero.in { opacity: 1; transform: translateY(0); }
+      .hero h1 {
+        margin: 0;
+        font-family: var(--nx-display);
+        font-weight: 500;
+        font-size: clamp(40px, 5.4vw, 72px);
+        line-height: 1.1;
+        letter-spacing: 0.01em;
+        text-transform: uppercase;
+      }
+      .hero h1.dim { color: rgba(255, 255, 255, 0.55); }
+
+      /* Bottom block */
+      .bottom {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+        opacity: 0;
+        transform: translateY(24px);
+        transition: opacity 1s ease 0.3s, transform 1s ease 0.3s;
+        width: 100%;
+      }
+      .bottom.in { opacity: 1; transform: translateY(0); }
+      .bottom p {
+        margin: 0;
+        max-width: 620px;
+        text-align: center;
+        font-size: 15px;
+        line-height: 1.6;
+      }
+      .bottom p .dim { color: rgba(255, 255, 255, 0.55); }
+      .primary-btn {
+        background: #fff;
+        color: #000;
+        font-size: 15px;
+        font-weight: 500;
+        border: none;
+        border-radius: 9999px;
+        padding: 14px 32px;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        font-family: inherit;
+      }
+      .primary-btn:hover {
+        transform: scale(1.03);
+        box-shadow: 0 0 32px 4px rgba(255, 255, 255, 0.2);
+      }
+      .primary-btn:active { transform: scale(0.97); }
+
+      .secure-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: 0.14em;
+        color: rgba(255, 255, 255, 0.7);
+      }
+      .secure-row svg { display: block; color: var(--nx-cyan); }
+
+      .powered {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 14px 8px 10px;
+        border-radius: 9999px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(148,252,255,0.12);
+        text-decoration: none;
+        transition: border-color 0.2s ease, background 0.2s ease;
+      }
+      .powered:hover { border-color: rgba(148,252,255,0.4); background: rgba(148,252,255,0.04); }
+      .powered img { width: 22px; height: 22px; display: block; }
+      .powered .label {
+        font-family: var(--nx-display);
+        font-size: 10px;
+        font-weight: 400;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--nx-dim);
+      }
+      .powered .label b {
+        color: var(--nx-white);
+        font-weight: 500;
+      }
+      .powered:hover .label b { color: var(--nx-cyan); }
+
+      /* Mobile menu */
+      .menu-btn {
+        display: none;
+        width: 40px;
+        height: 40px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 9999px;
+        color: rgba(255,255,255,0.9);
+      }
+      .menu-btn svg { display: block; }
+      .mobile-drawer {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        background: rgba(0,0,0,0.85);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        opacity: 0;
+        transition: opacity 0.25s ease;
+      }
+      .mobile-drawer.open { display: flex; opacity: 1; }
+      .mobile-drawer a {
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: 0.16em;
+        color: rgba(255,255,255,0.9);
+        padding: 14px 24px;
+      }
+      .mobile-drawer .close {
+        position: absolute;
+        top: 24px;
+        right: 24px;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+      }
+
+      @media (max-width: 860px) {
+        .site-header { padding: 18px 18px; }
+        .nav, .cta-glass.desktop-cta { display: none; }
+        .menu-btn { display: flex; }
+        .stage { padding: 104px 20px 32px; gap: 32px; }
+        .hero h1 { font-size: clamp(34px, 8vw, 56px); }
+        .bottom p { font-size: 14px; }
+        .primary-btn { font-size: 14px; padding: 12px 26px; }
+      }
+      @media (max-width: 380px) {
+        .secure-row { font-size: 10px; letter-spacing: 0.12em; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="root">
+      <div class="video-bg" id="video-bg">
+        <mux-video
+          id="hero-video"
+          playback-id="Aa02T7oM1wH5Mk5EEVDYhbZ1ChcdhRsS2m1NYyx4Ua1g"
+          stream-type="on-demand"
+          autoplay="muted"
+          muted
+          loop
+          playsinline
+          preload="auto"
+          poster="https://image.mux.com/Aa02T7oM1wH5Mk5EEVDYhbZ1ChcdhRsS2m1NYyx4Ua1g/thumbnail.jpg?time=1&width=1920"
+        ></mux-video>
       </div>
-      <div class="stat">
-        <span class="stat-label">Inference</span>
-        <span class="stat-value"><span data-stat="ms">—</span> ms</span>
+      <div class="video-tint"></div>
+
+      <header class="site-header">
+        <a href="/" class="wordmark">Vision<sup>TM</sup></a>
+        <nav class="nav liquid-glass" aria-label="Primary">
+          <a href="/smile/">SMILE</a>
+          <a href="/can/">CAN</a>
+        </nav>
+        <a href="/smile/" class="cta-glass liquid-glass desktop-cta">START DETECTING</a>
+        <button class="menu-btn liquid-glass" id="menu-btn" aria-label="Open menu" aria-expanded="false">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+            <path d="M4 7h16"></path><path d="M4 12h16"></path><path d="M4 17h16"></path>
+          </svg>
+        </button>
+      </header>
+
+      <div class="mobile-drawer" id="drawer" aria-hidden="true">
+        <button class="close" id="drawer-close" aria-label="Close menu">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+            <path d="M6 6l12 12"></path><path d="M18 6L6 18"></path>
+          </svg>
+        </button>
+        <a href="/smile/">SMILE</a>
+        <a href="/can/">CAN</a>
       </div>
-      <span class="stat-meta" data-stat="classes">smiling · neutral</span>
+
+      <main class="stage">
+        <section class="hero" id="hero">
+          <h1>See without limits.</h1>
+          <h1 class="dim">Detect with sharp instinct.</h1>
+        </section>
+
+        <section class="bottom" id="bottom">
+          <p>
+            Our smart vision pipeline adapts around you — your camera, your scene, your hunger for clarity.
+            <span class="dim">Each detection is precise, real-time, and wholly yours.</span>
+          </p>
+          <a href="/smile/" class="primary-btn" role="button">Try Vision live</a>
+          <div class="secure-row">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <span>SECURE BY DESIGN. ZERO DATA LEAKS.</span>
+          </div>
+          <a class="powered" href="https://nexapex.ai" target="_blank" rel="noopener" aria-label="Powered by NexApex">
+            <img src="/images/nexapex-logo.png" alt="" />
+            <span class="label">Powered by <b>NexApex</b></span>
+          </a>
+        </section>
+      </main>
     </div>
 
-    <div class="actions">
-      <button class="btn-primary" id="toggle">Start camera</button>
-      <button class="btn-secondary" id="flip" type="button" aria-label="Flip camera">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M3 8h13a4 4 0 0 1 4 4v1" />
-          <polyline points="6 5 3 8 6 11" />
-          <path d="M21 16H8a4 4 0 0 1-4-4v-1" />
-          <polyline points="18 19 21 16 18 13" />
-        </svg>
-        Flip
-      </button>
-    </div>
+    <script>
+      import { gsap } from 'gsap';
 
-    <p class="status-line" id="status">Awaiting input.</p>
-  </section>
+      const video = document.getElementById('hero-video') as HTMLVideoElement | null;
+      const videoBg = document.getElementById('video-bg');
+      const hero = document.getElementById('hero');
+      const bottom = document.getElementById('bottom');
 
-  <script>
-    import '../scripts/app.js';
-  </script>
-</Base>
+      if (video) {
+        const setRate = () => { try { video.playbackRate = 1.25; } catch {} };
+        video.addEventListener('loadedmetadata', setRate);
+        video.addEventListener('playing', setRate);
+        // Best-effort autoplay nudge for browsers that block on hydration
+        video.play?.().catch(() => {});
+      }
+
+      requestAnimationFrame(() => {
+        hero?.classList.add('in');
+        bottom?.classList.add('in');
+      });
+
+      let targetX = 0, targetY = 0, currentX = 0, currentY = 0;
+      function onMove(e: MouseEvent) {
+        const cx = window.innerWidth / 2;
+        const cy = window.innerHeight / 2;
+        targetX = ((e.clientX - cx) / cx) * 20;
+        targetY = ((e.clientY - cy) / cy) * 20;
+      }
+      window.addEventListener('mousemove', onMove);
+
+      function tick() {
+        currentX += (targetX - currentX) * 0.06;
+        currentY += (targetY - currentY) * 0.06;
+        if (videoBg) gsap.set(videoBg, { x: currentX, y: currentY });
+        requestAnimationFrame(tick);
+      }
+      tick();
+
+      const menuBtn = document.getElementById('menu-btn');
+      const drawer = document.getElementById('drawer');
+      const drawerClose = document.getElementById('drawer-close');
+      function openDrawer() {
+        drawer?.classList.add('open');
+        drawer?.setAttribute('aria-hidden', 'false');
+        menuBtn?.setAttribute('aria-expanded', 'true');
+        document.body.style.overflow = 'hidden';
+      }
+      function closeDrawer() {
+        drawer?.classList.remove('open');
+        drawer?.setAttribute('aria-hidden', 'true');
+        menuBtn?.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = '';
+      }
+      menuBtn?.addEventListener('click', openDrawer);
+      drawerClose?.addEventListener('click', closeDrawer);
+      drawer?.querySelectorAll('a').forEach((a) => a.addEventListener('click', closeDrawer));
+    </script>
+  </body>
+</html>

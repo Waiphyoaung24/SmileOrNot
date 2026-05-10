@@ -4,15 +4,30 @@ import Navbar from '../components/Navbar.astro';
 
 interface Props {
   title: string;
+  description?: string;
 }
-const { title } = Astro.props;
+const {
+  title,
+  description = 'Vision is a real-time visual detection lab by NexApex. Smile and object detection with on-device inference, zero data leaks.',
+} = Astro.props;
+const ogImage = '/images/nexapex-logo.png';
 ---
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#07090b" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#0e1418" />
+    <link rel="icon" type="image/png" href="/images/nexapex-logo.png" />
+    <link rel="apple-touch-icon" href="/images/nexapex-logo.png" />
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -29,6 +44,12 @@ const { title } = Astro.props;
     <main>
       <slot />
     </main>
+    <footer class="site-footer">
+      <a class="powered" href="https://nexapex.ai" target="_blank" rel="noopener" aria-label="Powered by NexApex">
+        <img src="/images/nexapex-logo.png" alt="" width="20" height="20" />
+        <span>Powered by <b>NexApex</b></span>
+      </a>
+    </footer>
 
     <script>
       import { gsap } from 'gsap';

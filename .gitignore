@@ -218,3 +218,9 @@ data/
 *.png
 nohup.out
 .playwright-mcp/
+
+# Frontend brand assets (override *.png for committed images)
+!frontend/public/images/*.png
+
+# Astro build cache
+frontend/.astro/
